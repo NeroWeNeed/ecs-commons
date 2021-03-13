@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement>
+        <ui:Label text="Label" display-tooltip-when-elided="true" name="text" />
+        <ui:Button display-tooltip-when-elided="true" name="create-settings" text="Create Asset" />
+    </ui:VisualElement>
+</ui:UXML>

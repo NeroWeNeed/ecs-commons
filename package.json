@@ -1,0 +1,16 @@
+{
+    "name": "github.neroweneed.commons",
+    "version": "1.0.0",
+    "displayName": "NeroWeNeed Commons",
+    "description": "Package for shared code between other packages.",
+    "unity": "2021.1",
+    "dependencies": {
+    "com.unity.rendering.hybrid": "0.11.0-preview.42",
+    "com.unity.entities": "0.17.0-preview.41"
+    },
+    "author": {
+        "name": "NeroWeNeed",
+        "email": "neroweneed@gmail.com",
+        "url": "https://github.com/NeroWeNeed"
+    }
+}

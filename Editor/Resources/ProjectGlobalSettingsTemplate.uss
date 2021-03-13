@@ -1,0 +1,14 @@
+#header {
+    font-size: 19px;
+    -unity-font-style: bold;
+    margin-bottom: 12px;
+}
+#root {
+    margin-left: 9px;
+    margin-top: 1px;
+}
+.section-title {
+    -unity-font-style: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+}

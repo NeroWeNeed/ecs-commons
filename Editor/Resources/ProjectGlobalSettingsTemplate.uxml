@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="root" style="flex-grow: 1;">
+    <ui:VisualElement name="header">
+        <ui:Label text="Project Global Settings" display-tooltip-when-elided="true" name="settings-name" />
+    </ui:VisualElement>
+        <ui:VisualElement name="container" style="flex-grow: 1;" />
+    </ui:VisualElement>
+</ui:UXML>
