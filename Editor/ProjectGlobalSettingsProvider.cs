@@ -84,7 +84,6 @@ namespace NeroWeNeed.Commons.Editor {
                 Directory.CreateDirectory($"{ProjectUtility.SettingsDirectory}");
             }
             var asset = ScriptableObject.CreateInstance(GlobalSettingsType);
-            Debug.Log(AssetPath);
             AssetDatabase.CreateAsset(asset, AssetPath);
             return asset;
         }

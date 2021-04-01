@@ -1,31 +1,41 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
-using UnityEditor;
+
 using UnityEngine;
 
 namespace NeroWeNeed.Commons {
     [Serializable]
+    [JsonConverter(typeof(SerializableTypeConverter))]
     public struct SerializableType : IEquatable<SerializableType>, IEquatable<Type> {
 
         [SerializeField]
         internal string assemblyQualifiedName;
-
         public string AssemblyQualifiedName { get => assemblyQualifiedName; }
-
+        public string FullName { get => assemblyQualifiedName.Substring(0,assemblyQualifiedName.IndexOf(',')); }
         [NonSerialized]
-        private Type type;
-        public Type Value => type ??= string.IsNullOrEmpty(assemblyQualifiedName) ? null : Type.GetType(assemblyQualifiedName);
+        private Type value;
+        public Type Value
+        {
+            get
+            {
+                if (value == null && IsCreated) {
+                    value = Type.GetType(assemblyQualifiedName);
+                }
+                return value;
+            }
+        }
         public bool IsCreated { get => !string.IsNullOrEmpty(assemblyQualifiedName); }
         public SerializableType(Type type) {
             assemblyQualifiedName = type?.AssemblyQualifiedName;
-            this.type = type;
+            this.value = type;
         }
         public SerializableType(string assemblyQualifiedName) {
             this.assemblyQualifiedName = assemblyQualifiedName;
-            this.type = null;
-        }
+            this.value = null;
 
+        }
 
 
 
@@ -78,16 +88,5 @@ namespace NeroWeNeed.Commons {
         }
     }
 
-    public class SerializableTypeConverter : JsonConverter<SerializableType> {
-
-        public override SerializableType ReadJson(JsonReader reader, Type objectType, SerializableType existingValue, bool hasExistingValue, JsonSerializer serializer) {
-            var name = reader.Value as string;
-            return new SerializableType(name == null ? null : Type.GetType(name));
-        }
-
-        public override void WriteJson(JsonWriter writer, SerializableType value, JsonSerializer serializer) {
-            writer.WriteValue(value.assemblyQualifiedName);
-        }
-    }
 
 }

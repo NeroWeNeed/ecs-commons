@@ -26,4 +26,44 @@ namespace NeroWeNeed.Commons {
             Value = new Color(math.clamp(red, 0, 1), math.clamp(green, 0, 1), math.clamp(blue, 0, 1), math.clamp(alpha, 0, 1));
         }
     }
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class ProjectAssetAttribute : Attribute {
+        public ProjectAssetType type;
+
+        public string extension;
+
+        public ProjectAssetAttribute(ProjectAssetType type, string extension) {
+            this.type = type;
+            this.extension = extension;
+        }
+        public ProjectAssetAttribute(ProjectAssetType type) {
+            this.type = type;
+            switch (type) {
+                case ProjectAssetType.Bytes:
+                    this.extension = "bytes";
+                    break;
+                case ProjectAssetType.Xml:
+                    this.extension = "xml";
+                    break;
+                case ProjectAssetType.Json:
+                    this.extension = "json";
+                    break;
+            }
+
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public sealed class ProviderAttribute : Attribute {
+        public Type value;
+
+        public ProviderAttribute(Type value) {
+            this.value = value;
+        }
+    }
+    public enum ProjectAssetType : byte {
+        Bytes = 0,
+        Xml = 1,
+        Json = 2
+    }
 }

@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace NeroWeNeed.Commons {
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public sealed class SearchableAssemblyAttribute : Attribute {
-        public Type Type { get; }
 
-        public SearchableAssemblyAttribute(Type type = null) {
-            Type = type;
-        }
-    }
 
     [AttributeUsage(AttributeTargets.Field)]
     public abstract class TypeFilterAttribute : Attribute, IComparable<TypeFilterAttribute> {
@@ -23,7 +17,47 @@ namespace NeroWeNeed.Commons {
 
         public abstract bool IsValid(Type type);
     }
-    
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public sealed class BurstFunctionPointerDelegateTypeFilterAttribute : TypeFilterAttribute {
+        private static readonly Type[] DllImportCompliantTypes = new Type[] {
+            typeof(byte),
+            typeof(ushort),
+            typeof(uint),
+            typeof(ulong),
+            typeof(sbyte),
+            typeof(short),
+            typeof(int),
+            typeof(long),
+            typeof(float),
+            typeof(double),
+            typeof(IntPtr),
+            typeof(UIntPtr),
+            typeof(Unity.Burst.Intrinsics.v64),
+            typeof(Unity.Burst.Intrinsics.v128),
+            typeof(Unity.Burst.Intrinsics.v256)
+        };
+        public override Type ComparisonType => typeof(BurstFunctionPointerDelegateTypeFilterAttribute);
+
+        public override bool IsValid(Type type) {
+            if (type.IsSubclassOf(typeof(Delegate))) {
+                var method = type.GetMethod("Invoke");
+                return method.GetParameters().All(p => IsDllImportCompliant(p.ParameterType)) && (method.ReturnType == typeof(void) || IsDllImportCompliant(method.ReturnType));
+            }
+            return false;
+        }
+        private bool IsDllImportCompliant(Type type) {
+            if (DllImportCompliantTypes.Any(x => type == x) || type.IsPointer || type.IsByRef) {
+                return true;
+            }
+            else if (type.IsValueType) {
+                var fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                return fields.Length == 1 && (fields[0].FieldType.IsPointer || fields[0].FieldType == typeof(int));
+            }
+            return false;
+        }
+    }
+
     /// <summary>
     /// Only Show types that have the following type as a supertype.
     /// </summary>
@@ -75,13 +109,39 @@ namespace NeroWeNeed.Commons {
             return type.GetConstructor(Type.EmptyTypes) != null;
         }
     }
+    public sealed class ExcludeAssemblyFilterAttribute : TypeFilterAttribute {
+
+        public string name;
+        public override Type ComparisonType { get => typeof(ExcludeAssemblyFilterAttribute); }
+
+        public ExcludeAssemblyFilterAttribute(string name) {
+            this.name = name;
+        }
+
+        public override bool IsValid(Type type) {
+            return type.Assembly.FullName != name;
+        }
+    }
+    public sealed class AssemblyFilterAttribute : TypeFilterAttribute {
+
+        public string name;
+        public override Type ComparisonType { get => typeof(AssemblyFilterAttribute); }
+
+        public AssemblyFilterAttribute(string name) {
+            this.name = name;
+        }
+
+        public override bool IsValid(Type type) {
+            return type.Assembly.FullName == name;
+        }
+    }
     public sealed class UnmanagedFilterAttribute : TypeFilterAttribute {
         public override Type ComparisonType { get => typeof(UnmanagedFilterAttribute); }
         public override bool IsValid(Type type) {
             return UnsafeUtility.IsUnmanaged(type);
         }
     }
-    
+
     public sealed class BlittableFilterAttribute : TypeFilterAttribute {
         public override Type ComparisonType { get => typeof(BlittableFilterAttribute); }
         public override bool IsValid(Type type) {

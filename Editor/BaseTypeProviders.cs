@@ -12,7 +12,6 @@ namespace NeroWeNeed.Commons.Editor {
 
             element.RegisterValueChangedCallback(evt =>
             {
-                Debug.Log("e");
                 var self = evt.target as BindableElement;
                 if (converter.Invoke(evt.newValue, out TValue result)) {
                     using var updateEvent = FieldUpdateEvent.GetPooled(self.bindingPath, result, self); self.SendEvent(updateEvent);

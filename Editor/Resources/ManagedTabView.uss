@@ -1,0 +1,21 @@
+.managed-tab-view--hidden {
+    display: none;
+}
+.managed-tab-view--tab {
+    margin: 0px 3px 0px 3px;
+    padding: 3px 6px 3px 6px;
+    font-size: 12px;
+    border-radius: 0px;
+}
+.managed-tab-view--tab--selected {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    -unity-font-style: bold;
+}
+.managed-tab-view--tab-container {
+    padding-top: 3px;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-bottom-width: 1px;
+    background-color: #393939;
+}

@@ -17,7 +17,8 @@
     "precompiledReferences": [
         "Mono.Cecil.dll",
         "Mono.Cecil.Pdb.dll",
-        "Mono.Cecil.Rocks.dll"
+        "Mono.Cecil.Rocks.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -11,12 +11,14 @@ namespace NeroWeNeed.Commons.Editor {
 
     [CustomPropertyDrawer(typeof(SerializableType))]
     public class SerializableTypeDrawer : PropertyDrawer {
-        private static readonly Dictionary<TypeFilter, List<SerializableType>> types = new Dictionary<TypeFilter, List<SerializableType>>();
         private int index = -1;
         private const string NO_TYPE = "None";
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             var qualifiedName = property.FindPropertyRelative("assemblyQualifiedName");
-            var types = GetTypes(property);
+            var types = GetTypes();
+            if (types == null) {
+                return;
+            }
             types.Insert(0, null);
             var type = string.IsNullOrEmpty(qualifiedName.stringValue) ? null : Type.GetType(qualifiedName.stringValue);
             index = types.IndexOf(type);
@@ -31,20 +33,22 @@ namespace NeroWeNeed.Commons.Editor {
                 return new TypeFilter(Array.Empty<TypeFilterAttribute>());
             return new TypeFilter(fieldInfo.GetCustomAttributes(typeof(TypeFilterAttribute), true) as TypeFilterAttribute[]);
         }
-        private List<SerializableType> GetTypes(SerializedProperty property) {
+        private List<SerializableType> GetTypes() {
             var filter = GetTypeFilter();
-            if (!SerializableTypeDrawer.types.TryGetValue(filter, out List<SerializableType> filteredTypes)) {
-                filteredTypes = filter.CollectTypesAsSerializable();
-                SerializableTypeDrawer.types[filter] = filteredTypes;
-            }
-            return filteredTypes;
+            return filter.CollectSerializableTypes(fieldInfo);
         }
-
         public override VisualElement CreatePropertyGUI(SerializedProperty property) {
             var assemblyQualifiedNameProperty = property.FindPropertyRelative("assemblyQualifiedName");
-            var types = GetTypes(property).ConvertAll(type => type.Value?.AssemblyQualifiedName);
+            var types = GetTypes()?.ConvertAll(type => type.Value?.AssemblyQualifiedName);
+            if (types == null) {
+                return null;
+            }
             types.Insert(0, string.Empty);
-            var popup = new PopupField<string>(property.displayName, types, string.IsNullOrWhiteSpace(assemblyQualifiedNameProperty.stringValue) ? string.Empty : assemblyQualifiedNameProperty.stringValue, t => string.IsNullOrWhiteSpace(t) ? NO_TYPE : t, t => string.IsNullOrWhiteSpace(t) ? NO_TYPE : t);
+            if (!types.Contains(string.IsNullOrWhiteSpace(assemblyQualifiedNameProperty.stringValue) ? string.Empty : assemblyQualifiedNameProperty.stringValue)) {
+                assemblyQualifiedNameProperty.stringValue = string.Empty;
+                //property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            }
+            var popup = new PopupField<string>(property.displayName, types, string.Empty, t => string.IsNullOrWhiteSpace(t) ? NO_TYPE : t.Substring(0, t.IndexOf(',')), t => string.IsNullOrWhiteSpace(t) ? NO_TYPE : t.Substring(0, t.IndexOf(',')).Replace('.', '/'));
             popup.BindProperty(assemblyQualifiedNameProperty);
             return popup;
         }

@@ -11,8 +11,8 @@ namespace NeroWeNeed.Commons.Editor {
             }
             var path = $"{ProjectUtility.SettingsDirectory}/{type.FullName}.asset";
             var asset = ScriptableObject.CreateInstance(type) as ProjectGlobalSettings;
-            if (asset is IInit initializable) {
-                initializable.Init();
+            if (asset is IInitializable initializable) {
+                initializable.OnInit();
             }
             AssetDatabase.CreateAsset(asset, path);
             return asset;

@@ -1,0 +1,23 @@
+.unity-listview-commands-container {
+flex-direction: row;
+background-color: #464646;
+margin-right: 20px;
+border-bottom-left-radius: 3px;
+border-bottom-right-radius: 3px;
+border-top-width: 0px;
+padding: 4px;
+}
+.unity-listview--hidden {
+    display: none;
+}
+.unity-listview-command {
+    background-color: transparent;
+    border-width: 0px;
+    width: 16px;
+    height: 16px;
+    margin: 0px 4px 0px 4px;
+    cursor: link;
+}
+.unity-listview-command:hover {
+    background-color: #585858;
+}

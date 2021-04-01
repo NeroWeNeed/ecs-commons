@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement class="managed-tab-view--tab-container" style="flex-grow: 1; flex-direction: row;"/>
+    <ui:ScrollView class="managed-tab-view--container"  />
+</ui:UXML>

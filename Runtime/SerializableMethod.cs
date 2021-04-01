@@ -4,10 +4,12 @@ using Newtonsoft.Json;
 using UnityEngine;
 
 namespace NeroWeNeed.Commons {
+
     [Serializable]
     public struct SerializableMethod {
         public SerializableType container;
         public string name;
+        [JsonIgnore]
         public bool IsCreated { get => container.IsCreated && !string.IsNullOrEmpty(name); }
         [JsonIgnore]
         public MethodInfo Value { get => container.Value?.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static); }
@@ -19,7 +21,6 @@ namespace NeroWeNeed.Commons {
             container = new SerializableType(containerAssemblyQualifiedName);
             name = methodName;
         }
-
         public static implicit operator SerializableMethod(MethodInfo method) => new SerializableMethod(method);
     }
 

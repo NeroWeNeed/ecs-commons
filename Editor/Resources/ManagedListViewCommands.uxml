@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-self: flex-end;">
+        <ui:VisualElement class="unity-listview-commands-container unity-list-view--with-border">
+            <ui:Button class="unity-listview-command--add unity-listview-command" />
+            <ui:Button class="unity-listview-command--remove unity-listview-command" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

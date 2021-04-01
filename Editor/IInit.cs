@@ -1,5 +1,13 @@
 namespace NeroWeNeed.Commons.Editor {
-    public interface IInit {
-        void Init();
+    public interface IInitializable {
+        void OnInit();
+    }
+    
+    
+    public interface ISerializationCallback {
+        void OnSerialize();
+    }
+    public interface IDeserializationCallback {
+        void OnDeserialize();
     }
 }
