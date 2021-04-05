@@ -182,9 +182,10 @@ namespace NeroWeNeed.Commons.Editor {
         public static TProjectAsset GetOrCreateProjectAsset<TProjectAsset>(bool cache = true) => (TProjectAsset)GetOrCreateProjectAsset(typeof(TProjectAsset), cache);
 
         public static void UpdateProjectAsset(Type projectAssetType, object asset) {
-            if (projectAssetCache.ContainsKey(projectAssetType)) {
-                projectAssetCache[projectAssetType] = asset;
-            }
+            projectAssetCache.Remove(projectAssetType);
+            /*             if (projectAssetCache.ContainsKey(projectAssetType)) {
+                            projectAssetCache[projectAssetType] = asset;
+                        } */
             if (typeof(ScriptableObject).IsAssignableFrom(projectAssetType)) {
                 if (asset is ISerializationCallback cb) {
                     cb.OnSerialize();
@@ -205,7 +206,10 @@ namespace NeroWeNeed.Commons.Editor {
                     cb.OnSerialize();
                 }
                 serializer.Serialize(projectAssetType, path, asset);
+
+
             }
+
         }
         public static void UpdateProjectAsset<TProjectAsset>(TProjectAsset asset) => UpdateProjectAsset(typeof(TProjectAsset), asset);
 

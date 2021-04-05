@@ -7,57 +7,62 @@ using NeroWeNeed.Commons.AssemblyAnalyzers.Editor;
 using NeroWeNeed.Commons.Editor;
 using UnityEngine;
 
-[assembly:Analyzer(typeof(SerializableMemberFinder))]
+[assembly: Analyzer(typeof(SerializableMemberFinder))]
 namespace NeroWeNeed.Commons.Editor {
     public class SerializableMemberFinder : ITypeAnalyzer, IBeginAnalysis, IEndAnalysis {
-        private Dictionary<string, TypeFilter> filters = null;
-        private Dictionary<string, List<SerializableType>> types = new Dictionary<string, List<SerializableType>>();
+        private List<TypeAnalysisData> filterData = new List<TypeAnalysisData>();
         public SerializableMemberCache cache;
+        private bool updateCacheForAssembly = false;
         public string assembly;
         public void Analyze(AssemblyDefinition assemblyDefinition, ModuleDefinition moduleDefinition, TypeDefinition typeDefinition) {
-            foreach (var filter in filters.ValueNotNull()) {
-                if (filter.Value.IsValid(typeDefinition)) {
-                    if (!types.TryGetValue(filter.Key, out var filteredTypes)) {
-                        filteredTypes = new List<SerializableType>();
-                        types[filter.Key] = filteredTypes;
-                    }
-                    filteredTypes.Add(new SerializableType(typeDefinition.AssemblyQualifiedName()));
+            foreach (var fd in filterData) {
+                if (fd.filter.IsValid(typeDefinition)) {
+                    fd.filteredTypes.Add(new SerializableType(typeDefinition.AssemblyQualifiedName()));
+                    updateCacheForAssembly = true;
                 }
             }
         }
         public bool IsValid(TypeDefinition definition) {
-            return filters != null;
+            return !filterData.IsEmpty();
         }
         public void OnBeginAnalysis(AssemblyDefinition assemblyDefinition) {
             this.assembly = assemblyDefinition.FullName;
             if (cache == null) {
                 cache = ProjectUtility.GetProjectAsset<SerializableMemberCache>();
             }
-            
+
             if (cache != null) {
-                filters = cache.typeFields.Select(name =>
-                {
-                    var separator = name.LastIndexOf('.');
-                    var typeName = name.Substring(0, separator);
-                    var fieldName = name.Substring(separator + 1, name.Length - (typeName.Length + 1));
-                    var type = Type.GetType(typeName);
-                    var field = type.GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
-                    return (name, field, attrs: field?.GetCustomAttributes<TypeFilterAttribute>()?.ToArray());
-                }).Where(a => a.field != null  && a.field.GetCustomAttribute<HideInInspector>() == null && a.attrs?.IsEmpty() == false).ToDictionary(a => a.name, a => new TypeFilter(a.attrs));
+
+                filterData = cache.typeFields.Select(field => (field: field.IsCreated ? field.Value : null, filter: new TypeFilter(field.Value?.GetCustomAttributes<TypeFilterAttribute>()?.ToArray())))
+                .Where(obj => obj.field != null && obj.field.GetCustomAttribute<HideInInspector>() == null && obj.filter.filterAttributes.Length > 0)
+                .Select(obj => new TypeAnalysisData(obj.field, obj.filter)).ToList();
             }
+            updateCacheForAssembly = false;
         }
         public void OnEndAnalysis(AssemblyDefinition assemblyDefinition) {
             if (cache == null) {
                 cache = ProjectUtility.GetProjectAsset<SerializableMemberCache>();
             }
             if (cache != null) {
-                if (types.IsEmpty()) {
-                    cache.assemblyData.Remove(assembly);
+                if (updateCacheForAssembly) {
+                    cache.assemblyData[assembly] = new SerializableMemberCache.AssemblyData { types = filterData.Where(fd => !fd.filteredTypes.IsEmpty()).ToDictionary(d => d.FullName, d => d.filteredTypes) };
                 }
                 else {
-                    cache.assemblyData[assembly] = new SerializableMemberCache.AssemblyData { types = types };
+                    cache.assemblyData.Remove(assembly);
                 }
+
                 ProjectUtility.UpdateProjectAsset(cache);
+            }
+        }
+        private class TypeAnalysisData {
+            public FieldInfo field;
+            public TypeFilter filter;
+            public List<SerializableType> filteredTypes = new List<SerializableType>();
+            public string FullName { get => field != null ? $"{field.DeclaringType.FullName}.{field.Name}" : string.Empty; }
+
+            public TypeAnalysisData(FieldInfo field, TypeFilter filter) {
+                this.field = field;
+                this.filter = filter;
             }
         }
     }

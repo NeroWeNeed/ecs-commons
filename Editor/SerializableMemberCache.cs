@@ -12,7 +12,7 @@ namespace NeroWeNeed.Commons.Editor {
         private Dictionary<string, AssemblyData> assemblyData = new Dictionary<string, AssemblyData>(); */
         [JsonProperty("data")]
         public Dictionary<string, AssemblyData> assemblyData = new Dictionary<string, AssemblyData>();
-        public List<string> typeFields = new List<string>();
+        public List<SerializableField> typeFields = new List<SerializableField>();
         //public List<string> methodFields = new List<string>();
         [JsonIgnore]
         public DictionaryView<string, AssemblyData, string, List<SerializableType>> types;

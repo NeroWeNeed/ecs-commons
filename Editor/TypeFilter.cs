@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Mono.Cecil;
 using NeroWeNeed.Commons.AssemblyAnalyzers.Editor;
@@ -13,10 +14,11 @@ namespace NeroWeNeed.Commons.Editor {
 
     }
     public sealed class TypeFilter {
+        private static object getLock = new object();
         public TypeFilterAttribute[] filterAttributes;
 
         public TypeFilter(TypeFilterAttribute[] filterAttributes) {
-            this.filterAttributes = filterAttributes;
+            this.filterAttributes = filterAttributes ?? Array.Empty<TypeFilterAttribute>();
             Array.Sort(filterAttributes);
         }
 
@@ -28,6 +30,9 @@ namespace NeroWeNeed.Commons.Editor {
             return -1995125846 + EqualityComparer<TypeFilterAttribute[]>.Default.GetHashCode(filterAttributes);
         }
         public bool IsValid(Type type) {
+            if (type == null) {
+                return false;
+            }
             foreach (var filterAttribute in filterAttributes) {
                 if (!filterAttribute.IsValid(type))
                     return false;
@@ -36,10 +41,12 @@ namespace NeroWeNeed.Commons.Editor {
         }
 
         public List<SerializableType> CollectSerializableTypes(FieldInfo fieldInfo) {
+            var field = new SerializableField(fieldInfo);
 
             var cache = ProjectUtility.GetOrCreateProjectAsset<SerializableMemberCache>();
-            var path = fieldInfo.DeclaringType.AssemblyQualifiedName + '.' + fieldInfo.Name;
-            if (!cache.types.TryGetValue(path, out List<SerializableType> result) && !cache.typeFields.Contains(path)) {
+
+            if (!cache.types.TryGetValue(field.FullName, out List<SerializableType> result)) {
+                result = new List<SerializableType>();
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                     var output = new List<SerializableType>();
                     foreach (var type in assembly.GetTypes()) {
@@ -47,25 +54,27 @@ namespace NeroWeNeed.Commons.Editor {
                             output.Add(type);
                         }
                     }
-
                     if (!output.IsEmpty()) {
                         if (!cache.assemblyData.TryGetValue(assembly.FullName, out var data)) {
                             data = new SerializableMemberCache.AssemblyData();
                             cache.assemblyData[assembly.FullName] = data;
                         }
-                        data.types[path] = output;
+                        data.types[field.FullName] = output;
+                        result.AddRange(output);
                     }
                 }
-                cache.typeFields.Add(path);
-                cache.types.TryGetValue(path, out result);
+                if (!cache.typeFields.Contains(field)) {
+                    cache.typeFields.Add(field);
+                }
                 ProjectUtility.UpdateProjectAsset(cache);
                 return result;
             }
             else {
-                return result;
+                return result.Where(r => r.IsCreated && IsValid(r)).ToList();
+                
             }
 
-        }
 
+        }
     }
 }

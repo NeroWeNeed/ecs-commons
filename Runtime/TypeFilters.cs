@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
@@ -109,17 +110,34 @@ namespace NeroWeNeed.Commons {
             return type.GetConstructor(Type.EmptyTypes) != null;
         }
     }
+    public enum MatchType : byte {
+        Equals = 0,
+        Regex = 1,
+        StartsWith = 2,
+        EndsWith = 3,
+        Contains = 4
+    }
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public sealed class ExcludeAssemblyFilterAttribute : TypeFilterAttribute {
 
         public string name;
+        public MatchType matchType;
         public override Type ComparisonType { get => typeof(ExcludeAssemblyFilterAttribute); }
 
-        public ExcludeAssemblyFilterAttribute(string name) {
+        public ExcludeAssemblyFilterAttribute(string name, MatchType matchType = MatchType.Equals) {
             this.name = name;
+            this.matchType = matchType;
         }
 
         public override bool IsValid(Type type) {
-            return type.Assembly.FullName != name;
+            return matchType switch
+            {
+                MatchType.Regex => !new Regex(name, RegexOptions.Compiled).IsMatch(type.Assembly.FullName),
+                MatchType.StartsWith => !type.Assembly.FullName.StartsWith(name),
+                MatchType.EndsWith => !type.Assembly.FullName.EndsWith(name),
+                MatchType.Contains => !type.Assembly.FullName.Contains(name),
+                _ => type.Assembly.FullName != name,
+            };
         }
     }
     public sealed class AssemblyFilterAttribute : TypeFilterAttribute {

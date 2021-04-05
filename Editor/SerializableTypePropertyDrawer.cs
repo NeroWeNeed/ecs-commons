@@ -15,10 +15,8 @@ namespace NeroWeNeed.Commons.Editor {
         private const string NO_TYPE = "None";
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
             var qualifiedName = property.FindPropertyRelative("assemblyQualifiedName");
-            var types = GetTypes();
-            if (types == null) {
-                return;
-            }
+            var types = GetTypes() ?? new List<SerializableType>();
+
             types.Insert(0, null);
             var type = string.IsNullOrEmpty(qualifiedName.stringValue) ? null : Type.GetType(qualifiedName.stringValue);
             index = types.IndexOf(type);
@@ -28,21 +26,19 @@ namespace NeroWeNeed.Commons.Editor {
                 index = newIndex;
             }
         }
-        private TypeFilter GetTypeFilter() {
-            if (fieldInfo == null)
-                return new TypeFilter(Array.Empty<TypeFilterAttribute>());
-            return new TypeFilter(fieldInfo.GetCustomAttributes(typeof(TypeFilterAttribute), true) as TypeFilterAttribute[]);
-        }
+
         private List<SerializableType> GetTypes() {
-            var filter = GetTypeFilter();
+            var filter = new TypeFilter(fieldInfo?.GetCustomAttributes<TypeFilterAttribute>(true)?.ToArray());
             return filter.CollectSerializableTypes(fieldInfo);
         }
         public override VisualElement CreatePropertyGUI(SerializedProperty property) {
             var assemblyQualifiedNameProperty = property.FindPropertyRelative("assemblyQualifiedName");
-            var types = GetTypes()?.ConvertAll(type => type.Value?.AssemblyQualifiedName);
-            if (types == null) {
-                return null;
+            if (assemblyQualifiedNameProperty.stringValue == null) {
+                assemblyQualifiedNameProperty.stringValue = string.Empty;
+                property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
             }
+            var types = GetTypes().ConvertAll(type => type.Value?.AssemblyQualifiedName);
+
             types.Insert(0, string.Empty);
             if (!types.Contains(string.IsNullOrWhiteSpace(assemblyQualifiedNameProperty.stringValue) ? string.Empty : assemblyQualifiedNameProperty.stringValue)) {
                 assemblyQualifiedNameProperty.stringValue = string.Empty;

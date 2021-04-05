@@ -11,7 +11,14 @@ using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace NeroWeNeed.Commons.AssemblyAnalyzers.Editor {
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
+    public sealed class AdditionalAssemblyAnalysisPath : Attribute {
+        public string path;
 
+        public AdditionalAssemblyAnalysisPath(string path) {
+            this.path = path;
+        }
+    }
 
     public interface IValidator<TDefinition> {
         bool IsValid(TDefinition definition);
@@ -61,6 +68,7 @@ namespace NeroWeNeed.Commons.AssemblyAnalyzers.Editor {
         private static readonly List<IPropertyAnalyzer> propertyAnalyzers = new List<IPropertyAnalyzer>();
         private static readonly List<IModuleAnalyzer> moduleAnalyzers = new List<IModuleAnalyzer>();
         private static readonly List<object> analyzers = new List<object>();
+        private static readonly List<string> additionalAssemblyPaths = new List<string>();
         static AssemblyAnalyzer() {
             InitializeAnalyzers();
             CompilationPipeline.assemblyCompilationFinished -= AnalyzeAssembly;
@@ -95,6 +103,9 @@ namespace NeroWeNeed.Commons.AssemblyAnalyzers.Editor {
                         continue;
                     }
                 }
+                foreach (var alsoAnalyze in assembly.GetCustomAttributes<AdditionalAssemblyAnalysisPath>().Select(attr => attr?.path).NotNullOrWhiteSpace().Where(path => path.EndsWith(".dll"))) {
+                    additionalAssemblyPaths.Add(alsoAnalyze);
+                }
             }
         }
         private static void AnalyzeAssembly(string path, CompilerMessage[] messages) {
@@ -108,14 +119,32 @@ namespace NeroWeNeed.Commons.AssemblyAnalyzers.Editor {
         private static bool ShouldExploreMembers(object analyzer) => analyzer is IFieldAnalyzer || analyzer is IMethodAnalyzer || analyzer is IPropertyAnalyzer;
 
         public static void AnalyzeAssemblies(object analyzer) {
-            foreach (var assemblyPath in Directory.GetFiles("Library/ScriptAssemblies").Where(f => f.EndsWith("dll"))) {
-                AnalyzeAssembly(analyzer, assemblyPath);
+
+            foreach (var assemblyPath in Directory.GetFiles("Library/ScriptAssemblies").Where(f => f.EndsWith(".dll"))) {
+                try {
+                    AnalyzeAssembly(analyzer, assemblyPath);
+                }
+                catch (Exception) { }
+            }
+            foreach (var assemblyPath in additionalAssemblyPaths) {
+                try {
+                    AnalyzeAssembly(analyzer, assemblyPath);
+                }
+                catch (Exception) { }
             }
         }
         public static void AnalyzeAssemblies() {
-            foreach (var assemblyPath in Directory.GetFiles("Library/ScriptAssemblies").Where(f => f.EndsWith("dll"))) {
-                AnalyzeAssembly(assemblyPath);
-                
+            foreach (var assemblyPath in Directory.GetFiles("Library/ScriptAssemblies").Where(f => f.EndsWith(".dll"))) {
+                try {
+                    AnalyzeAssembly(assemblyPath);
+                }
+                catch (Exception) { }
+            }
+            foreach (var assemblyPath in additionalAssemblyPaths) {
+                try {
+                    AnalyzeAssembly(assemblyPath);
+                }
+                catch (Exception) { }
             }
         }
 

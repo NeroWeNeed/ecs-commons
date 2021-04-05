@@ -19,6 +19,9 @@ namespace NeroWeNeed.Commons.Editor {
 
         public static MethodInfo GetGenericMethod(this Type type, string name, BindingFlags flags = BindingFlags.Default) => type.GetMethods(flags).FirstOrDefault(m => m.Name == name && m.IsGenericMethod);
         public static string[] GetPropertyPaths(this Type type, Func<FieldInfo, bool> predicate = null) => (predicate == null ? type.GetSerializableFields().Select(field => field.Name) : type.GetSerializableFields().Where(predicate).Select(field => field.Name)).ToArray();
+        public static Type GetGenericInterface(this Type type,Type target) {
+            return Array.Find(type.GetInterfaces(), i => i.IsGenericType && i.GetGenericTypeDefinition() == target);
+        }
     }
 
 
