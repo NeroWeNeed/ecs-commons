@@ -19,7 +19,7 @@ namespace NeroWeNeed.Commons {
         }
         public SerializableMethod(string containerAssemblyQualifiedName, string methodName) {
             container = new SerializableType(containerAssemblyQualifiedName);
-            name = methodName;
+            name = string.IsNullOrEmpty(methodName) ? null : methodName;
         }
         public static implicit operator SerializableMethod(MethodInfo method) => new SerializableMethod(method);
     }

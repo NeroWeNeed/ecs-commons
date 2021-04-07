@@ -22,7 +22,7 @@ namespace NeroWeNeed.Commons.Editor {
         }
         private static void Decompose(FieldInfo fieldInfo, FieldInfo parentFieldInfo, string path, string parentPath, Func<Type, FieldInfo, FieldInfo, string, string, TypeDecompositionOptions, bool> onDecomposition, TypeDecompositionOptions options) {
             if (!onDecomposition.Invoke(fieldInfo.FieldType, fieldInfo, parentFieldInfo, path, parentPath, options) && options.exploreChildren && Type.GetTypeCode(fieldInfo.FieldType) == TypeCode.Object && fieldInfo.FieldType.IsValueType) {
-                foreach (var field in fieldInfo.FieldType.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Where(field => field.GetCustomAttribute<HideInInspector>() == null)) {
+                foreach (var field in fieldInfo.FieldType.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).Where(field => field.GetCustomAttribute<HideInInspector>() == null && field.FieldType != fieldInfo.FieldType)) {
                     Decompose(field, fieldInfo, JoinPath(path, field.Name), path, onDecomposition, options);
                 }
             }

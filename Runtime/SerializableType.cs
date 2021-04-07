@@ -13,7 +13,7 @@ namespace NeroWeNeed.Commons {
         [SerializeField]
         internal string assemblyQualifiedName;
         public string AssemblyQualifiedName { get => assemblyQualifiedName; }
-        public string FullName { get => assemblyQualifiedName.Substring(0,assemblyQualifiedName.IndexOf(',')); }
+        public string FullName { get => string.IsNullOrEmpty(assemblyQualifiedName) ? null : assemblyQualifiedName.Substring(0,assemblyQualifiedName.IndexOf(',')); }
         [NonSerialized]
         private Type value;
         public Type Value
@@ -28,11 +28,11 @@ namespace NeroWeNeed.Commons {
         }
         public bool IsCreated { get => !string.IsNullOrEmpty(assemblyQualifiedName); }
         public SerializableType(Type type) {
-            assemblyQualifiedName = type?.AssemblyQualifiedName;
+            assemblyQualifiedName = string.IsNullOrEmpty(type?.AssemblyQualifiedName) ? null : type.AssemblyQualifiedName;
             this.value = type;
         }
         public SerializableType(string assemblyQualifiedName) {
-            this.assemblyQualifiedName = assemblyQualifiedName;
+            this.assemblyQualifiedName = string.IsNullOrEmpty(assemblyQualifiedName) ? null : assemblyQualifiedName;
             this.value = null;
 
         }

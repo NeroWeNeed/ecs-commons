@@ -19,7 +19,7 @@ namespace NeroWeNeed.Commons.Editor {
 
         public TypeFilter(TypeFilterAttribute[] filterAttributes) {
             this.filterAttributes = filterAttributes ?? Array.Empty<TypeFilterAttribute>();
-            Array.Sort(filterAttributes);
+            Array.Sort(this.filterAttributes);
         }
 
         public override bool Equals(object obj) {

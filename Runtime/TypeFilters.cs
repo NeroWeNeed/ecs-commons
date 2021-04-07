@@ -118,6 +118,28 @@ namespace NeroWeNeed.Commons {
         Contains = 4
     }
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public sealed class ExcludeTypeNameFilterAttribute : TypeFilterAttribute {
+        public string name;
+        public MatchType matchType;
+        public override Type ComparisonType { get => typeof(ExcludeTypeNameFilterAttribute); }
+
+        public ExcludeTypeNameFilterAttribute(string name, MatchType matchType = MatchType.Equals) {
+            this.name = name;
+            this.matchType = matchType;
+        }
+
+        public override bool IsValid(Type type) {
+            return matchType switch
+            {
+                MatchType.Regex => !new Regex(name, RegexOptions.Compiled).IsMatch(type.FullName),
+                MatchType.StartsWith => !type.FullName.StartsWith(name),
+                MatchType.EndsWith => !type.FullName.EndsWith(name),
+                MatchType.Contains => !type.FullName.Contains(name),
+                _ => type.FullName != name,
+            };
+        }
+    }
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public sealed class ExcludeAssemblyFilterAttribute : TypeFilterAttribute {
 
         public string name;
