@@ -151,6 +151,8 @@ namespace NeroWeNeed.Commons.AssemblyAnalyzers.Editor {
         public static void AnalyzeAssembly(string path) {
             var resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory("Library/ScriptAssemblies");
+            resolver.AddSearchDirectory($"{EditorApplication.applicationContentsPath}/Managed");
+            resolver.AddSearchDirectory($"{EditorApplication.applicationContentsPath}/Managed/UnityEngine");
             using var assemblyDefinition = AssemblyDefinition.ReadAssembly(path, new ReaderParameters { AssemblyResolver = resolver });
             foreach (var analyzer in analyzers.OfType<IBeginAnalysis>()) {
                 analyzer.OnBeginAnalysis(assemblyDefinition);
@@ -228,6 +230,8 @@ namespace NeroWeNeed.Commons.AssemblyAnalyzers.Editor {
         public static void AnalyzeAssembly(object analyzer, string path) {
             var resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory("Library/ScriptAssemblies");
+            resolver.AddSearchDirectory($"{EditorApplication.applicationContentsPath}/Managed");
+            resolver.AddSearchDirectory($"{EditorApplication.applicationContentsPath}/Managed/UnityEngine");
             using var assemblyDefinition = AssemblyDefinition.ReadAssembly(path, new ReaderParameters { AssemblyResolver = resolver });
             if (analyzer is IBeginAnalysis begin) {
                 begin.OnBeginAnalysis(assemblyDefinition);

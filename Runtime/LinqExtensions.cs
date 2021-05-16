@@ -14,15 +14,15 @@ namespace NeroWeNeed.Commons {
         public static IEnumerable<string> NotNullOrWhiteSpace(this IEnumerable<string> elements) {
             return elements.Where(e => !string.IsNullOrWhiteSpace(e));
         }
-        
-        public static IEnumerable<KeyValuePair<TKey, TElement>> ValueNotNull<TKey, TElement>(this IDictionary<TKey,TElement> elements) where TElement : class {
+
+        public static IEnumerable<KeyValuePair<TKey, TElement>> ValueNotNull<TKey, TElement>(this IDictionary<TKey, TElement> elements) where TElement : class {
             return elements.Where(e => e.Value != null);
         }
         public static IEnumerable<TElement> NotDefault<TElement>(this IEnumerable<TElement> elements) {
             return elements.Where(e => !EqualityComparer<TElement>.Default.Equals(e, default));
         }
-        public static bool IsEmpty(this ICollection collection) => collection.Count == 0;
-        
+        public static bool IsEmpty<TElement>(this ICollection<TElement> collection) => collection.Count == 0;
+
     }
 
 }

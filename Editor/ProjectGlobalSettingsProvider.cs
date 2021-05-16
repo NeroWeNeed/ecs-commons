@@ -65,7 +65,7 @@ namespace NeroWeNeed.Commons.Editor {
             var container = rootElement.Q<VisualElement>("container");
             container.Clear();
             if (string.IsNullOrWhiteSpace(uxmlPath)) {
-                InspectorElement.FillDefaultInspector(container, serializedObject, null);
+                //InspectorElement.FillDefaultInspector(container, serializedObject, null);
             }
             else {
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(container);

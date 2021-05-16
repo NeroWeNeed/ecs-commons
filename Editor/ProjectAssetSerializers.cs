@@ -32,7 +32,7 @@ namespace NeroWeNeed.Commons.Editor {
         }
         public override void Serialize(Type projectAssetType, string path, object asset) {
             var serializer = new XmlSerializer(projectAssetType);
-            using var stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.Write);
+            using var stream = File.Open(path, FileMode.Create, FileAccess.Write);
             serializer.Serialize(stream, asset);
         }
     }
@@ -46,7 +46,7 @@ namespace NeroWeNeed.Commons.Editor {
         }
         public override void Serialize(Type projectAssetType, string path, object asset) {
             var serializer = new JsonSerializer();
-            using var stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.Write);
+            using var stream = File.Open(path, FileMode.Create, FileAccess.Write);
             using var streamReader = new StreamWriter(stream);
             using var jsonWriter = new JsonTextWriter(streamReader);
             serializer.Serialize(jsonWriter, asset, projectAssetType);

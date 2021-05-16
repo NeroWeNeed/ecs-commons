@@ -12,8 +12,12 @@ namespace NeroWeNeed.Commons {
 
         [SerializeField]
         internal string assemblyQualifiedName;
+
+        [SerializeField]
+        internal string[] genericArguments;
         public string AssemblyQualifiedName { get => assemblyQualifiedName; }
-        public string FullName { get => string.IsNullOrEmpty(assemblyQualifiedName) ? null : assemblyQualifiedName.Substring(0,assemblyQualifiedName.IndexOf(',')); }
+        public bool IsGenericType { get => genericArguments?.Length > 0; }
+        public string FullName { get => string.IsNullOrEmpty(assemblyQualifiedName) ? null : assemblyQualifiedName.Substring(0, assemblyQualifiedName.IndexOf(',')); }
         [NonSerialized]
         private Type value;
         public Type Value
@@ -21,7 +25,7 @@ namespace NeroWeNeed.Commons {
             get
             {
                 if (value == null && IsCreated) {
-                    value = Type.GetType(assemblyQualifiedName);
+                    value = BuildType(assemblyQualifiedName, genericArguments);
                 }
                 return value;
             }
@@ -29,15 +33,57 @@ namespace NeroWeNeed.Commons {
         public bool IsCreated { get => !string.IsNullOrEmpty(assemblyQualifiedName); }
         public SerializableType(Type type) {
             assemblyQualifiedName = string.IsNullOrEmpty(type?.AssemblyQualifiedName) ? null : type.AssemblyQualifiedName;
+            genericArguments = CollectGenericArguments(type);
             this.value = type;
         }
-        public SerializableType(string assemblyQualifiedName) {
+        public SerializableType(string assemblyQualifiedName, params string[] genericArguments) {
             this.assemblyQualifiedName = string.IsNullOrEmpty(assemblyQualifiedName) ? null : assemblyQualifiedName;
+            this.genericArguments = genericArguments;
             this.value = null;
 
         }
-
-
+        private static string[] CollectGenericArguments(Type type) {
+            if (type.IsConstructedGenericType) {
+                var types = new List<string>();
+                CollectGenericArguments(type, types);
+                return types.ToArray();
+            }
+            else {
+                return null;
+            }
+        }
+        private static void CollectGenericArguments(Type type, List<string> types) {
+            types.Add(type.GetGenericTypeDefinition().AssemblyQualifiedName);
+            if (type.IsConstructedGenericType) {
+                foreach (var item in type.GenericTypeArguments) {
+                    CollectGenericArguments(item, types);
+                }
+            }
+        }
+        private static Type BuildType(string baseName, string[] arguments) {
+            Type current = Type.GetType(baseName);
+            if (arguments?.IsEmpty() != false || current == null || !current.IsGenericType) {
+                return current;
+            }
+            int index = 0;
+            var types = new Type[current.GetGenericArguments().Length];
+            for (int i = 0; i < types.Length; i++) {
+                types[i] = BuildType(arguments, ref index);
+            }
+            return current.MakeGenericType(types);
+        }
+        private static Type BuildType(string[] arguments, ref int index) {
+            var str = arguments[index++];
+            Type current = Type.GetType(str);
+            if (arguments?.IsEmpty() != false || current == null || !current.IsGenericType) {
+                return current;
+            }
+            var types = new Type[current.GetGenericArguments().Length];
+            for (int i = 0; i < types.Length; i++) {
+                types[i] = BuildType(arguments, ref index);
+            }
+            return current.MakeGenericType(types);
+        }
 
         public static implicit operator SerializableType(Type type) => new SerializableType(type);
         public static implicit operator Type(SerializableType type) => type.Value;
